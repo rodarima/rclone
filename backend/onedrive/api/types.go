@@ -175,7 +175,8 @@ type CreateItemRequest struct {
 
 // SetFileSystemInfo is used to Update an object's FileSystemInfo.
 type SetFileSystemInfo struct {
-	FileSystemInfo FileSystemInfoFacet `json:"fileSystemInfo"` // File system information on client. Read-write.
+	FileSystemInfo   FileSystemInfoFacet `json:"fileSystemInfo"` // File system information on client. Read-write.
+	ConflictBehavior string              `json:"@name.conflictBehavior,omitempty"`
 }
 
 // CreateUploadRequest is used by CreateUploadSession to set the dates correctly

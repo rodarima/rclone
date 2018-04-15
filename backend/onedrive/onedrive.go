@@ -1144,6 +1144,7 @@ func (o *Object) createUploadSession(modTime time.Time) (response *api.CreateUpl
 	createRequest := api.CreateUploadRequest{}
 	createRequest.Item.FileSystemInfo.CreatedDateTime = api.Timestamp(modTime)
 	createRequest.Item.FileSystemInfo.LastModifiedDateTime = api.Timestamp(modTime)
+	createRequest.Item.ConflictBehavior = "replace"
 	var resp *http.Response
 	err = o.fs.pacer.Call(func() (bool, error) {
 		resp, err = o.fs.srv.CallJSON(&opts, &createRequest, &response)
