@@ -57,13 +57,13 @@ type Folder struct {
 }
 
 type createFolder struct {
-	SessionID           string  `json:"session_id"`
+	SessionID           string `json:"session_id"`
 	FolderName          string `json:"folder_name"`
 	FolderSubParent     string `json:"folder_sub_parent"`
-	FolderIsPublic      int64  `json:"folder_is_public"`     // (0 = private, 1 = public, 2 = hidden)
-	FolderPublicUpl     int64 `json:"folder_public_upl"`     // (0 = disabled, 1 = enabled)
-	FolderPublicDisplay int64 `json:"folder_public_display"` // (0 = disabled, 1 = enabled)
-	FolderPublicDnl     int64 `json:"folder_public_dnl"`     // (0 = disabled, 1 = enabled).
+	FolderIsPublic      int64  `json:"folder_is_public"`      // (0 = private, 1 = public, 2 = hidden)
+	FolderPublicUpl     int64  `json:"folder_public_upl"`     // (0 = disabled, 1 = enabled)
+	FolderPublicDisplay int64  `json:"folder_public_display"` // (0 = disabled, 1 = enabled)
+	FolderPublicDnl     int64  `json:"folder_public_dnl"`     // (0 = disabled, 1 = enabled).
 }
 
 type createFolderResponse struct {
@@ -90,7 +90,7 @@ type moveFolderResponse struct {
 }
 
 type removeFolder struct {
-	SessionID string  `json:"session_id"`
+	SessionID string `json:"session_id"`
 	FolderID  string `json:"folder_id"`
 }
 
@@ -196,4 +196,3 @@ type permissions struct {
 	FileID       string `json:"file_id"`
 	FileIsPublic int64  `json:"file_ispublic"`
 }
-

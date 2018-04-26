@@ -162,7 +162,6 @@ func NewFs(name, root string) (fs.Fs, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create session")
 	}
-	resp.Body.Close()
 	fs.Debugf(nil, "Starting OpenDrive session with ID: %s", f.session.SessionID)
 
 	f.features = (&fs.Features{ReadMimeType: true, WriteMimeType: true}).Fill(f)
@@ -354,7 +353,6 @@ func (f *Fs) Copy(src fs.Object, remote string) (fs.Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp.Body.Close()
 
 	size, _ := strconv.ParseInt(response.Size, 10, 64)
 	dstObj.id = response.FileID
@@ -411,7 +409,6 @@ func (f *Fs) Move(src fs.Object, remote string) (fs.Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	resp.Body.Close()
 
 	size, _ := strconv.ParseInt(response.Size, 10, 64)
 	dstObj.id = response.FileID
@@ -497,7 +494,6 @@ func (f *Fs) DirMove(src fs.Fs, srcRemote, dstRemote string) (err error) {
 		fs.Debugf(src, "DirMove error %v", err)
 		return err
 	}
-	resp.Body.Close()
 
 	srcFs.dirCache.FlushDir(srcRemote)
 	return nil
@@ -585,7 +581,6 @@ func (f *Fs) readMetaDataForFolderID(id string) (info *FolderList, err error) {
 		return nil, err
 	}
 	if resp != nil {
-		resp.Body.Close()
 	}
 
 	return info, err
@@ -609,7 +604,9 @@ func (f *Fs) Put(in io.Reader, src fs.ObjectInfo, options ...fs.OpenOption) (fs.
 	}
 
 	if "" == o.id {
-		o.readMetaData()
+		// Attempt to read ID, ignore error
+		// FIXME is this correct?
+		_ = o.readMetaData()
 	}
 
 	if "" == o.id {
@@ -628,7 +625,6 @@ func (f *Fs) Put(in io.Reader, src fs.ObjectInfo, options ...fs.OpenOption) (fs.
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create file")
 		}
-		resp.Body.Close()
 
 		o.id = response.FileID
 	}
@@ -681,7 +677,6 @@ func (f *Fs) CreateDir(pathID, leaf string) (newID string, err error) {
 	if err != nil {
 		return "", err
 	}
-	resp.Body.Close()
 
 	return response.FolderID, nil
 }
@@ -710,7 +705,6 @@ func (f *Fs) FindLeaf(pathID, leaf string) (pathIDOut string, found bool, err er
 	if err != nil {
 		return "", false, errors.Wrap(err, "failed to get folder list")
 	}
-	resp.Body.Close()
 
 	for _, folder := range folderList.Folders {
 		folder.Name = restoreReservedChars(folder.Name)
@@ -758,7 +752,6 @@ func (f *Fs) List(dir string) (entries fs.DirEntries, err error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get folder list")
 	}
-	resp.Body.Close()
 
 	for _, folder := range folderList.Folders {
 		folder.Name = restoreReservedChars(folder.Name)
@@ -990,7 +983,10 @@ func (o *Object) Update(in io.Reader, src fs.ObjectInfo, options ...fs.OpenOptio
 			}
 			// Don't forget to close the multipart writer.
 			// If you don't close it, your request will be missing the terminating boundary.
-			w.Close()
+			err = w.Close()
+			if err != nil {
+				return false, err
+			}
 
 			opts := rest.Opts{
 				Method:       "POST",
@@ -1004,7 +1000,10 @@ func (o *Object) Update(in io.Reader, src fs.ObjectInfo, options ...fs.OpenOptio
 		if err != nil {
 			return errors.Wrap(err, "failed to create file")
 		}
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			return errors.Wrap(err, "close failed on create file")
+		}
 
 		chunkCounter++
 		chunkOffset += currentChunkSize
@@ -1025,7 +1024,6 @@ func (o *Object) Update(in io.Reader, src fs.ObjectInfo, options ...fs.OpenOptio
 	if err != nil {
 		return errors.Wrap(err, "failed to create file")
 	}
-	resp.Body.Close()
 	fs.Debugf(nil, "PostClose: %#v", closeResponse)
 
 	o.id = closeResponse.FileID
@@ -1077,7 +1075,6 @@ func (o *Object) readMetaData() (err error) {
 	if err != nil {
 		return errors.Wrap(err, "failed to get folder list")
 	}
-	resp.Body.Close()
 
 	if len(folderList.Files) == 0 {
 		return fs.ErrorObjectNotFound
