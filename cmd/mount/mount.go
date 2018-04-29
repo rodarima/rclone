@@ -7,6 +7,7 @@ package mount
 import (
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"bazil.org/fuse"
@@ -25,10 +26,15 @@ func init() {
 
 // mountOptions configures the options from the command line flags
 func mountOptions(device string) (options []fuse.MountOption) {
+	// FIXME need to fix this for cmount also
+	volName := strings.Replace(device, ":", " ", -1)
+	volName = strings.Replace(volName, "/", " ", -1)
+	volName = strings.TrimSpace(volName)
+	fs.Debugf(nil, "volName=%q", volName)
 	options = []fuse.MountOption{
 		fuse.MaxReadahead(uint32(mountlib.MaxReadAhead)),
 		fuse.Subtype("rclone"),
-		fuse.FSName(device), fuse.VolumeName(device),
+		fuse.FSName(device), fuse.VolumeName(volName),
 		fuse.NoAppleDouble(),
 		fuse.NoAppleXattr(),
 
